@@ -8,7 +8,7 @@ pipeline {
     stages {
         stage('checkout') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], userRemoteConfigs: [[url: 'git@github.com:Esmailshaikh105/EC2-Pipeline.git']]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], userRemoteConfigs: [[url: 'git@github.com:Esmailshaikh105/EC2-Pipeline.git']]], credentialsId: 'your-git-credentials-id')
             }
         }
 
