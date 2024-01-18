@@ -15,7 +15,7 @@ pipeline {
                  script{
                         dir("terraform")
                         {
-                            https://github.com/Esmailshaikh105/EC2-Pipeline.git
+                            git@github.com:Esmailshaikh105/EC2-Pipeline.git
                         }
                     }
                 }
