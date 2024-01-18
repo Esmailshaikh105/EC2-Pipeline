@@ -11,12 +11,11 @@ pipeline {
    agent  any
     stages {
         stage('checkout') {
-            steps {
-                 script{
-                        dir("terraform")
-                        {
-                            git@github.com:Esmailshaikh105/EC2-Pipeline.git
-                        }
+    steps {
+        checkout([$class: 'GitSCM', branches: [[name: '*/master']], userRemoteConfigs: [[url: 'git@github.com:Esmailshaikh105/EC2-Pipeline.git']]])
+    }
+}
+
                     }
                 }
             }
