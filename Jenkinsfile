@@ -1,61 +1,45 @@
 pipeline {
-    parameters {
-        booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
-    }
-
     agent any
 
+    environment {
+        TF_VAR_aws_access_key = credentials('AWS_ACCESS_KEY_ID')
+        TF_VAR_aws_secret_key = credentials('AWS_SECRET_ACCESS_KEY')
+    }
+
     stages {
-        stage('checkout') {
+        stage('Checkout') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/master']], userRemoteConfigs: [[url: 'git@github.com:Esmailshaikh105/EC2-Pipeline.git']]], credentialsId: 'your-git-credentials-id')
+                checkout([$class: 'GitSCM', branches: [[name: '*/master']], userRemoteConfigs: [[url: 'git@github.com:Esmailshaikh105/EC2-Pipeline.git']]])
             }
         }
 
-        stage('Plan') {
+        stage('Terraform Init') {
             steps {
                 script {
-                    withEnv([
-                        "AWS_ACCESS_KEY_ID=${credentials('AWS_ACCESS_KEY_ID')}",
-                        "AWS_SECRET_ACCESS_KEY=${credentials('AWS_SECRET_ACCESS_KEY')}"
-                    ]) {
-                        sh 'pwd;cd terraform/ ; terraform init'
-                        sh "pwd;cd terraform/ ; terraform plan -out tfplan"
-                        sh 'pwd;cd terraform/ ; terraform show -no-color tfplan > tfplan.txt'
+                    dir('terraform') {
+                        sh 'terraform init'
                     }
                 }
             }
         }
 
-        stage('Approval') {
-            when {
-                not {
-                    equals expected: true, actual: params.autoApprove
-                }
-            }
-
+        stage('Terraform Plan') {
             steps {
                 script {
-                    withEnv([
-                        "AWS_ACCESS_KEY_ID=${credentials('AWS_ACCESS_KEY_ID')}",
-                        "AWS_SECRET_ACCESS_KEY=${credentials('AWS_SECRET_ACCESS_KEY')}"
-                    ]) {
-                        def plan = readFile 'terraform/tfplan.txt'
-                        input message: "Do you want to apply the plan?",
-                              parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                    dir('terraform') {
+                        sh 'terraform plan -out=tfplan'
                     }
                 }
             }
         }
 
-        stage('Apply') {
+        stage('Terraform Apply') {
             steps {
                 script {
-                    withEnv([
-                        "AWS_ACCESS_KEY_ID=${credentials('AWS_ACCESS_KEY_ID')}",
-                        "AWS_SECRET_ACCESS_KEY=${credentials('AWS_SECRET_ACCESS_KEY')}"
-                    ]) {
-                        sh "pwd;cd terraform/ ; terraform apply -input=false tfplan"
+                    dir('terraform') {
+                        input message: 'Do you want to apply the plan?', ok: 'Apply'
+
+                        sh 'terraform apply -auto-approve tfplan'
                     }
                 }
             }
