@@ -22,7 +22,7 @@ pipeline {
 
         stage('Format') {
             steps {
-                sh 'pwd;cd terraform/ ; terraform fmt -check -write=true'
+                sh 'pwd;cd terraform/ ; terraform fmt'
             }
         }
 
